@@ -1,0 +1,29 @@
+# docker-compose.yml
+version: '3.1'
+
+services:
+  go-smart-contract-service:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - 9114:9114
+    expose:
+      - "9114"
+    volumes:
+      - ./logs:/app/logs/
+    environment:
+      HTTP_ADDR: ":9114"
+      LOG_LEVEL: "debug"
+
+      #DB related variables
+#      SQL_DRIVER_NAME: "mysql"
+#      DB_HOST:
+#      DB_PROTOCOL: "tcp"
+#      DB_NAME:
+#      DB_USERNAME:
+#      DB_PASSWORD:
+#      BOOKING_SERVICE_DB_NAME:
+
+      #CORS
+#      CORS_ALLOWED_ORIGIN:

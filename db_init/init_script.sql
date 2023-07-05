@@ -12,4 +12,5 @@ CREATE TABLE IF NOT EXISTS user_wallet_log (
     created_at DATETIME NOT NULL,
     deleted_at DATETIME NULL,
     INDEX idx_nric (nric)
+    INDEX idx_wallet_address (wallet_address)
 );

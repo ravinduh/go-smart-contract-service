@@ -9,6 +9,10 @@ type Request struct {
 }
 
 type ReceiptRequest struct {
+	Data ReceiptData `json:"data"`
+}
+
+type ReceiptData struct {
 	NRIC          string `json:"nric"`
 	WalletAddress string `json:"wallet_address"`
 }

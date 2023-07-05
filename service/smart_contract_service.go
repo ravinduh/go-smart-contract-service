@@ -36,7 +36,7 @@ func (scs smartContractService) HealthCheck(requestId string) datastruct.Respons
 func (scs smartContractService) GetReceipt(requestId string, receiptRequest datastruct.ReceiptRequest) datastruct.Response {
 	var res interface{}
 
-	walletCount, err := scs.userWalletRepo.GetUserWalletCount(requestId, receiptRequest.NRIC)
+	walletCount, err := scs.userWalletRepo.GetUserWalletCount(requestId, receiptRequest.Data.NRIC)
 	if err != nil {
 		_ = level.Error(scs.logger).Log("RequestId", requestId, "Error", err)
 		return datastruct.Response{
@@ -51,7 +51,7 @@ func (scs smartContractService) GetReceipt(requestId string, receiptRequest data
 
 	// Check if nric already associated with a wallet, if yes then return error
 	if walletCount > 0 {
-		encryptedUserWallet, err := scs.userWalletRepo.GetUserWallet(requestId, receiptRequest.NRIC)
+		encryptedUserWallet, err := scs.userWalletRepo.GetUserWallet(requestId, receiptRequest.Data.NRIC)
 		if err != nil {
 			_ = level.Error(scs.logger).Log("RequestId", requestId, "Error", err)
 			return datastruct.Response{
@@ -77,7 +77,7 @@ func (scs smartContractService) GetReceipt(requestId string, receiptRequest data
 			}
 		}
 
-		if userWalletStored != receiptRequest.WalletAddress {
+		if userWalletStored != receiptRequest.Data.WalletAddress {
 			return datastruct.Response{
 				CustomError: &datastruct.ErrorResponse{
 					RequestId:  requestId,
@@ -89,9 +89,33 @@ func (scs smartContractService) GetReceipt(requestId string, receiptRequest data
 		}
 
 	} else {
-		// if the nric is new then insert and return
-		encryptedNewWallet, err := scs.encryptionHelper.EncryptBase64(requestId, receiptRequest.WalletAddress)
-		err = scs.userWalletRepo.InsertUserRecord(requestId, receiptRequest.NRIC, string(encryptedNewWallet))
+		// if the nric is new check if the wallet address is used
+		encryptedNewWallet, err := scs.encryptionHelper.EncryptBase64(requestId, receiptRequest.Data.WalletAddress)
+		walletUserCount, err := scs.userWalletRepo.GetWalletUserCount(requestId, encryptedNewWallet)
+		if err != nil {
+			_ = level.Error(scs.logger).Log("RequestId", requestId, "Error", err)
+			return datastruct.Response{
+				CustomError: &datastruct.ErrorResponse{
+					RequestId:  requestId,
+					StatusCode: 500,
+					ErrorCode:  1005,
+					Message:    "Error while getting wallet user count",
+				},
+			}
+		}
+
+		if *walletUserCount > 0 {
+			return datastruct.Response{
+				CustomError: &datastruct.ErrorResponse{
+					RequestId:  requestId,
+					StatusCode: 500,
+					ErrorCode:  1005,
+					Message:    "Wallet already assigned to different NRIC",
+				},
+			}
+		}
+
+		err = scs.userWalletRepo.InsertUserRecord(requestId, receiptRequest.Data.NRIC, encryptedNewWallet)
 		if err != nil {
 			_ = level.Error(scs.logger).Log("RequestId", requestId, "Error", err)
 			return datastruct.Response{

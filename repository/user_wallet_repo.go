@@ -48,6 +48,18 @@ func (uw UserWalletRepo) GetUserWallet(requestId, nric string) (*string, error) 
 	return encryptedWalletAddress, nil
 }
 
+func (uw UserWalletRepo) GetWalletUserCount(requestId, encryptedWalletAddress string) (*int, error) {
+
+	var walletUserCount *int
+	err := uw.sqlClient.QueryRow(
+		"SELECT count(1) FROM user_wallet_log WHERE wallet_address = ? AND deleted_at IS NULL", encryptedWalletAddress).Scan(&walletUserCount)
+	if err != nil {
+		_ = level.Error(uw.logger).Log("RequestId", requestId, "Error", err)
+		return nil, err
+	}
+	return walletUserCount, nil
+}
+
 func NewUserWalletRepo(logger log.Logger, sqlClient *sql.DB) UserWalletRepo {
 	return UserWalletRepo{
 		logger:    logger,

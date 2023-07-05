@@ -29,6 +29,13 @@ func NewApi(svcEndpoints transport.Endpoints, options []kitHttp.ServerOption, lo
 		encodeResponse,
 	))
 
+	// HTTP POST - /smart-contract-service/receipt
+	r.Methods(http.MethodPost).Path("/smart-contract-service/receipt").Handler(util.SetCorsHeaders(kitHttp.NewServer(
+		svcEndpoints.GetReceipt,
+		decodeRequest,
+		encodeResponse,
+	), logger))
+
 	// HTTP Post - /service/test
 	r.Methods(http.MethodPost).Path("/service/test").Handler(kitHttp.NewServer(
 		svcEndpoints.Test,

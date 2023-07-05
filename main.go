@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log/level"
 	"go-smart-contract-service/middleware"
+	"go-smart-contract-service/repository"
 	"go-smart-contract-service/service"
 	"go-smart-contract-service/transport"
 	"go-smart-contract-service/transport/routes"
@@ -21,12 +22,23 @@ func main() {
 
 	logger := util.GetLogger(logLevel)
 
-	svc := service.NewSmartContractService(logger)
+	encryptionHelper := service.NewEncryptionHelper(logger)
+
+	sqlClient, err := util.GetSQLClient(logger, util.MaxIdleConnections, util.MaxOpenConnections,
+		util.ConnectionLifeTimeInS)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	userWalletRepo := repository.NewUserWalletRepo(logger, sqlClient)
+
+	svc := service.NewSmartContractService(logger, encryptionHelper, userWalletRepo)
 	svc = middleware.NewSCSLoggingMiddleware(logger)(svc)
 
 	endpoints := transport.MakeEndpoints(svc)
 
-	// create a error channel, which can be used to stop the application in proper manner otherwise port will not get free in local
+	// create a error channel, which can be used to stop the application in proper manner otherwise port
+	// will not get free in local
 	errChan := make(chan error)
 	go func() {
 		c := make(chan os.Signal, 1)

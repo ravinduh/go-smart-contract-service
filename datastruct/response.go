@@ -16,3 +16,8 @@ type HealthCheckResponse struct {
 	RequestId string `json:"request_id"`
 	Message   string `json:"message"`
 }
+
+type ReceiptResponse struct {
+	RequestId string `json:"request_id"`
+	Receipt   string `json:"receipt"`
+}

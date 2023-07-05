@@ -2,28 +2,38 @@
 version: '3.1'
 
 services:
+  db:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: "qazxsw123"
+      MYSQL_DATABASE: "smart_contract_service"
+      MYSQL_USER: "userWalletService"
+      MYSQL_PASSWORD: "qazxsw123"
+    volumes:
+      - ./db_init/init_script.sql:/docker-entrypoint-initdb.d/init_script.sql
   go-smart-contract-service:
     build:
       context: ./
       dockerfile: ./Dockerfile
     ports:
-      - 9114:9114
+      - 9124:9124
     expose:
-      - "9114"
+      - "9124"
     volumes:
       - ./logs:/app/logs/
     environment:
-      HTTP_ADDR: ":9114"
+      HTTP_ADDR: ":9124"
       LOG_LEVEL: "debug"
 
       #DB related variables
-#      SQL_DRIVER_NAME: "mysql"
-#      DB_HOST:
-#      DB_PROTOCOL: "tcp"
-#      DB_NAME:
-#      DB_USERNAME:
-#      DB_PASSWORD:
-#      BOOKING_SERVICE_DB_NAME:
+      SQL_DRIVER_NAME: "mysql"
+      DB_HOST: "db:3306"
+      DB_PROTOCOL: "tcp"
+      DB_NAME: "smart_contract_service"
+      DB_USERNAME: "userWalletService"
+      DB_PASSWORD: "qazxsw123"
+    depends_on:
+      - db
 
-      #CORS
-#      CORS_ALLOWED_ORIGIN:

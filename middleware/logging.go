@@ -31,6 +31,22 @@ func (scsl scsLogging) HealthCheck(requestId string) datastruct.Response {
 	return scsl.next.HealthCheck(requestId)
 }
 
+func (scsl scsLogging) GetReceipt(requestId string, receiptReq datastruct.ReceiptRequest) datastruct.Response {
+	defer func(begin time.Time) {
+		took := int64(time.Since(begin) / time.Millisecond)
+		_ = level.Info(scsl.logger).Log(
+			"Method", "GetReceipt",
+			"RequestId", requestId,
+			"UserId", 0,
+			"Request", receiptReq.String(),
+			"ValErr", nil,
+			"Took", took,
+		)
+	}(time.Now())
+
+	return scsl.next.GetReceipt(requestId, receiptReq)
+}
+
 func (scsl scsLogging) Test(requestId string) datastruct.Response {
 	var valErr error
 	defer func(begin time.Time) {
